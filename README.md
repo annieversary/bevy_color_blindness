@@ -2,7 +2,7 @@
 
 # Bevy Color Blindness Simulation
 
-![picking_demo](./demo.gif)
+<img src="./demo.gif" width="640" alt="video showing 4 cubes of different colors as the different modes cycle"/>
 
 [Bevy](https://docs.rs/bevy) plugin to simulate and preview different types of
 Color Blindness.
