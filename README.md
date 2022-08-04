@@ -28,7 +28,7 @@ your main camera.
 
 You can change the selected mode by inserting `ColorBlindnessParams` before the plugin.
 You can also skip this, and change the resource at any time in a system. Check out
-[`examples/main.rs`](https://github.com/annieversary/bevy_color_blindness/tree/main/examples/main.rs)
+[`examples/main.rs`](https://github.com/annieversary/bevy_color_blindness/blob/3c599f542c5f2d472580537773c206ac732f236d/examples/main.rs)
 for a more detailed example.
 
 ```rust
