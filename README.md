@@ -4,6 +4,8 @@
 
 <img src="./demo.gif" width="640" alt="video showing 4 cubes of different colors as the different modes cycle"/>
 
+</div>
+
 [Bevy](https://docs.rs/bevy) plugin to simulate and preview different types of
 Color Blindness.
 
