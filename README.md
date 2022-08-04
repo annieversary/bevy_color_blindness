@@ -11,10 +11,10 @@ Based on [Alan Zucconi's post](https://www.alanzucconi.com/2015/12/16/color-blin
 
 ## Using
 
-Add the [`ColorBlindnessPlugin`] to your app, and add [`ColorBlindnessCamera`] to
+Add the `ColorBlindnessPlugin` to your app, and add `ColorBlindnessCamera` to
 your main camera.
 
-You can change the selected mode by inserting [`ColorBlindnessParams`] before the plugin.
+You can change the selected mode by inserting `ColorBlindnessParams` before the plugin.
 You can also skip this, and change the resource at any time in a system. Check out
 [`examples/main.rs`](https://github.com/annieversary/bevy_color_blindness/tree/main/examples/main.rs)
 for a more detailed example.
