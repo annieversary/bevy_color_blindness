@@ -5,7 +5,8 @@ edition = "2021"
 authors = ["annieversary <annie@versary.town>"]
 description = "Bevy plugin to simulate color blindness"
 license = "MIT OR Apache-2.0"
-keywords = ["bevy", "color blindness", "accessibility"]
+keywords = ["bevy", "color-blindness", "accessibility"]
+categories = ["accessibility", "game-development"]
 repository = "https://github.com/annieversary/bevy_color_blindness"
 readme = "README.md"
 
