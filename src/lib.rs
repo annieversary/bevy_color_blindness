@@ -13,7 +13,13 @@
 //!
 //! # Using
 //!
-//! Add the [`ColorBlindnessPlugin`] to your app, and add [`ColorBlindnessCamera`] to
+//! First, add the following to your `Cargo.toml`:
+//!
+//!```toml
+//! bevy_color_blindness = "0.1.0"
+//!```
+//!
+//! Then, add the [`ColorBlindnessPlugin`] to your app, and add [`ColorBlindnessCamera`] to
 //! your main camera.
 //!
 //! You can change the selected mode by inserting [`ColorBlindnessParams`] before the plugin.
@@ -102,6 +108,24 @@ const COLOR_BLINDNESS_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 3937837360667146578);
 
 /// Resource which selects the type of color blindness to simulate
+///
+/// # Example
+///
+/// This system will only enable the simulation while `Space` is held, and will cycle through
+/// the different modes when `N` is pressed.
+///
+/// ```rust
+/// # use bevy::prelude::*;
+/// # use bevy_color_blindness::*;
+/// fn cycle_mode(input: Res<Input<KeyCode>>, mut params: ResMut<ColorBlindnessParams>) {
+///     if input.just_pressed(KeyCode::N) {
+///         params.mode.cycle();
+///         println!("Changed to {:?}", params.mode);
+///     }
+///
+///     params.enable = input.pressed(KeyCode::Space);
+/// }
+/// ```
 #[derive(Default, Debug)]
 pub struct ColorBlindnessParams {
     /// Selects the color blindness mode to use
@@ -114,7 +138,7 @@ pub struct ColorBlindnessParams {
     pub enable: bool,
 }
 
-/// The different modes of color blindness simulation supported
+/// The different modes of color blindness simulation supported.
 #[derive(Clone, Default, Debug)]
 pub enum Mode {
     #[default]
@@ -178,6 +202,34 @@ impl Mode {
             ),
         }
     }
+
+    /// Changes `self` to the next Mode.
+    ///
+    /// Useful for writing something like the following:
+    ///
+    /// ```rust
+    /// # use bevy::prelude::*;
+    /// # use bevy_color_blindness::*;
+    /// fn cycle_mode(input: Res<Input<KeyCode>>, mut params: ResMut<ColorBlindnessParams>) {
+    ///     if input.just_pressed(KeyCode::N) {
+    ///         params.mode.cycle();
+    ///         println!("Changed to {:?}", params.mode);
+    ///     }
+    /// }
+    /// ```
+    pub fn cycle(&mut self) {
+        *self = match self {
+            Mode::Normal => Mode::Protanopia,
+            Mode::Protanopia => Mode::Protanomaly,
+            Mode::Protanomaly => Mode::Deuteranopia,
+            Mode::Deuteranopia => Mode::Deuteranomaly,
+            Mode::Deuteranomaly => Mode::Tritanopia,
+            Mode::Tritanopia => Mode::Tritanomaly,
+            Mode::Tritanomaly => Mode::Achromatopsia,
+            Mode::Achromatopsia => Mode::Achromatomaly,
+            Mode::Achromatomaly => Mode::Normal,
+        };
+    }
 }
 
 /// Our custom post processing material
@@ -206,17 +258,29 @@ impl Material2d for PostProcessingMaterial {
 /// Component to identify your main camera
 ///
 /// Adding this component to a camera will set up the post-processing pipeline
-/// which simulates color blindness
+/// which simulates color blindness. This is done by changing the render target
+/// to be an image, and then using another camera to render that image.
+///
+/// Cameras with `ColorBlindnessCamera` will have [`UiCameraConfig`] inserted with
+/// `show_ui` set to `false`. This is to ensure that UI elements are not rendered twice.
+/// In most cases, you will want to render UI using the final post-processing camera.
+/// If for some reason this behavior is not desired, please open an issue.
+///
+/// [`UiCameraConfig`]: bevy::prelude::UiCameraConfig
 #[derive(Component)]
 pub struct ColorBlindnessCamera;
 
 /// sets the target for newly added `ColorBlindCamera`s
 fn set_camera_target(
-    mut query: Query<&mut Camera, Added<ColorBlindnessCamera>>,
+    mut commands: Commands,
+    mut query: Query<(Entity, &mut Camera), Added<ColorBlindnessCamera>>,
     inner: Res<InternalResource>,
 ) {
-    for mut camera in query.iter_mut() {
+    for (entity, mut camera) in query.iter_mut() {
         camera.target = RenderTarget::Image(inner.image.clone());
+        commands
+            .entity(entity)
+            .insert(UiCameraConfig { show_ui: false });
     }
 }
 

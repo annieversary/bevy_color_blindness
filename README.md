@@ -17,7 +17,13 @@ Based on [Alan Zucconi's post](https://www.alanzucconi.com/2015/12/16/color-blin
 
 ## Using
 
-Add the `ColorBlindnessPlugin` to your app, and add `ColorBlindnessCamera` to
+First, add the following to your `Cargo.toml`:
+
+```toml
+bevy_color_blindness = "0.1.0"
+```
+
+Then, add the `ColorBlindnessPlugin` to your app, and add `ColorBlindnessCamera` to
 your main camera.
 
 You can change the selected mode by inserting `ColorBlindnessParams` before the plugin.

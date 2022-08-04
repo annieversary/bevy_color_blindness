@@ -83,18 +83,7 @@ fn setup(
 fn change_mode(input: Res<Input<KeyCode>>, mut params: ResMut<ColorBlindnessParams>) {
     // cycle through the modes by pressing N
     if input.just_pressed(KeyCode::N) {
-        params.mode = match params.mode {
-            Mode::Normal => Mode::Protanopia,
-            Mode::Protanopia => Mode::Protanomaly,
-            Mode::Protanomaly => Mode::Deuteranopia,
-            Mode::Deuteranopia => Mode::Deuteranomaly,
-            Mode::Deuteranomaly => Mode::Tritanopia,
-            Mode::Tritanopia => Mode::Tritanomaly,
-            Mode::Tritanomaly => Mode::Achromatopsia,
-            Mode::Achromatopsia => Mode::Achromatomaly,
-            Mode::Achromatomaly => Mode::Normal,
-        };
-
+        params.mode.cycle();
         println!("Changed to {:?}", params.mode);
     }
 
