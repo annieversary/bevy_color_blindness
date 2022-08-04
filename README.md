@@ -1,4 +1,8 @@
-# bevy_color_blindness
+<div align="center">
+
+# Bevy Color Blindness Simulation
+
+![picking_demo](./demo.gif)
 
 [Bevy](https://docs.rs/bevy) plugin to simulate and preview different types of
 Color Blindness.
