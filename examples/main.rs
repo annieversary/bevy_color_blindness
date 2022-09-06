@@ -1,4 +1,4 @@
-//! Small demo of how to use the plugin
+//! Small demo of how to use color blindness simulation
 //! Shows a small scene, with four different cubes
 //!
 //! Holding the Space key enables the simulation
@@ -10,11 +10,6 @@ use bevy_color_blindness::*;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        // you can select the color blindness simulation mode with the `ColorBlindnessParams` resource
-        .insert_resource(ColorBlindnessParams {
-            mode: Mode::Deuteranomaly,
-            ..default()
-        })
         // add the plugin
         .add_plugin(ColorBlindnessPlugin)
         .add_startup_system(setup)
@@ -76,16 +71,20 @@ fn setup(
             transform: Transform::from_xyz(-2.0, 2.5, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
             ..default()
         })
-        // IMPORTANT: add this component to your main camera
-        .insert(ColorBlindnessCamera);
+        .insert(ColorBlindnessCamera {
+            mode: ColorBlindnessMode::Deuteranopia,
+            enabled: false,
+        });
 }
 
-fn change_mode(input: Res<Input<KeyCode>>, mut params: ResMut<ColorBlindnessParams>) {
-    // cycle through the modes by pressing N
-    if input.just_pressed(KeyCode::N) {
-        params.mode.cycle();
-        println!("Changed to {:?}", params.mode);
-    }
+fn change_mode(input: Res<Input<KeyCode>>, mut cameras: Query<&mut ColorBlindnessCamera>) {
+    for mut camera in &mut cameras {
+        // cycle through the modes by pressing N
+        if input.just_pressed(KeyCode::N) {
+            camera.mode.cycle();
+            println!("Changed to {:?}", camera.mode);
+        }
 
-    params.enable = input.pressed(KeyCode::Space);
+        camera.enabled = input.pressed(KeyCode::Space);
+    }
 }

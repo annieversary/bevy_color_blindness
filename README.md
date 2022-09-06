@@ -2,6 +2,9 @@
 
 # Bevy Color Blindness Simulation
 
+[![crates.io](https://img.shields.io/crates/v/bevy_color_blindness)](https://crates.io/crates/bevy_color_blindness)
+[![docs.rs](https://docs.rs/bevy_color_blindness/badge.svg)](https://docs.rs/bevy_color_blindness)
+
 <img src="./demo.gif" width="640" alt="video showing 4 cubes of different colors as the different modes cycle"/>
 
 </div>
