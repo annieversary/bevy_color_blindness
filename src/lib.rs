@@ -16,7 +16,7 @@
 //! First, add the following to your `Cargo.toml`:
 //!
 //!```toml
-//! bevy_color_blindness = "0.1.0"
+//! bevy_color_blindness = "0.2.0"
 //!```
 //!
 //! Then, add the [`ColorBlindnessPlugin`] to your app, and add [`ColorBlindnessCamera`] to
