@@ -168,6 +168,11 @@ pub enum ColorBlindnessMode {
     /// Absence of color discrimination.
     Achromatopsia,
     /// All color cones have some form of deficiency.
+    ///
+    /// According to [some sources](https://www.youtube.com/watch?v=kYZ00B5O_VQ), Achromatomaly is a made up extrapolation of
+    /// other types of color blindness, and not actually found in nature. The (lack) of scientific literature on this
+    /// topic seems to corroborate this.
+    /// It has been left in for completeness sake, but please be aware of this fact.
     Achromatomaly,
 }
 
