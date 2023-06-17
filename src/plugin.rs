@@ -30,9 +30,14 @@ use crate::{ColorBlindnessCamera, ColorBlindnessMode, ColorBlindnessPercentages}
 
 pub struct ColorBlindnessPlugin;
 
-/// This is the component that will get passed to the shader
+/// Component to apply the colorblind effect
+///
+/// Adding this component to a camera will set up the post-processing pipeline
+/// which simulates color blindness.
+/// This is done by adding a render pass taking the original output texture as input,
+/// Then applying a shader to the whole texture, rendering it to a full screen triangle.
 #[derive(Component, Default, Clone, Copy, ExtractComponent, ShaderType)]
-pub struct PostProcessSettings {
+pub struct ColorBlindnessPostProcess {
     percentages: ColorBlindnessPercentages,
 }
 
@@ -56,11 +61,11 @@ impl Plugin for ColorBlindnessPlugin {
             // This plugin will take care of extracting it automatically.
             // It's important to derive [`ExtractComponent`] on [`PostProcessingSettings`]
             // for this plugin to work correctly.
-            .add_plugin(ExtractComponentPlugin::<PostProcessSettings>::default())
+            .add_plugin(ExtractComponentPlugin::<ColorBlindnessPostProcess>::default())
             // The settings will also be the data used in the shader.
             // This plugin will prepare the component for the GPU by creating a uniform buffer
             // and writing the data to that buffer every frame.
-            .add_plugin(UniformComponentPlugin::<PostProcessSettings>::default());
+            .add_plugin(UniformComponentPlugin::<ColorBlindnessPostProcess>::default());
 
         // We need to get the render app from the main app
         let Ok(render_app) = app.get_sub_app_mut(RenderApp) else {
@@ -171,7 +176,7 @@ impl Node for PostProcessNode {
         };
 
         // Get the settings uniform binding
-        let settings_uniforms = world.resource::<ComponentUniforms<PostProcessSettings>>();
+        let settings_uniforms = world.resource::<ComponentUniforms<ColorBlindnessPostProcess>>();
         let Some(settings_binding) = settings_uniforms.uniforms().binding() else {
             return Ok(());
         };
@@ -333,7 +338,7 @@ impl FromWorld for PostProcessPipeline {
 /// updates the percentages in the post processing material when the values in `ColorBlindnessCamera` change
 fn update_percentages(
     mut settings: Query<
-        (&mut PostProcessSettings, &ColorBlindnessCamera),
+        (&mut ColorBlindnessPostProcess, &ColorBlindnessCamera),
         Changed<ColorBlindnessCamera>,
     >,
 ) {

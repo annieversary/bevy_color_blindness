@@ -75,7 +75,7 @@ fn setup(
             mode: ColorBlindnessMode::Deuteranopia,
             enabled: false,
         })
-        .insert(PostProcessSettings::default());
+        .insert(ColorBlindnessPostProcess::default());
 }
 
 fn change_mode(input: Res<Input<KeyCode>>, mut cameras: Query<&mut ColorBlindnessCamera>) {

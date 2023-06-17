@@ -281,18 +281,10 @@ impl ColorBlindnessMode {
     }
 }
 
-/// Component to identify your main camera
-///
-/// Adding this component to a camera will set up the post-processing pipeline
-/// which simulates color blindness. This is done by changing the render target
-/// to be an image, and then using another camera to render that image.
-///
-/// Cameras with `ColorBlindnessCamera` will have [`UiCameraConfig`] inserted with
-/// `show_ui` set to `false`. This is to ensure that UI elements are not rendered twice.
-/// In most cases, you will want to render UI using the final post-processing camera.
-/// If for some reason this behavior is not desired, please open an issue.
-///
-/// [`UiCameraConfig`]: bevy::prelude::UiCameraConfig
+/// Helper component to:
+/// - easily switch on and off the `ColorBlindnessPostProcess` effect
+/// - cache current mode
+/// - easily apply different modes onto the `ColorBlindnessPostProcess`
 #[derive(Component, Default)]
 pub struct ColorBlindnessCamera {
     /// Selects the color blindness mode to use
