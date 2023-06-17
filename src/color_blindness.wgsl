@@ -1,4 +1,4 @@
-#import bevy_pbr::mesh_view_bindings
+#import bevy_pbr::utils
 
 struct Percentages {
     red: vec3<f32>,
@@ -6,22 +6,19 @@ struct Percentages {
     blue: vec3<f32>,
 };
 
-@group(1) @binding(0)
+@group(0) @binding(0)
 var texture: texture_2d<f32>;
 
-@group(1) @binding(1)
+@group(0) @binding(1)
 var our_sampler: sampler;
 
-@group(1) @binding(2)
+@group(0) @binding(2)
 var<uniform> p: Percentages;
 
 @fragment
-fn fragment(
-    @builtin(position) position: vec4<f32>,
-    #import bevy_sprite::mesh2d_vertex_output
-) -> @location(0) vec4<f32> {
+fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     // Get screen position with coordinates from 0 to 1
-    let uv = position.xy / vec2<f32>(view.width, view.height);
+    let uv = in.uv;
 
     var c = textureSample(texture, our_sampler, uv);
 

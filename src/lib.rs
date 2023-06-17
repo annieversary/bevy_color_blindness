@@ -57,6 +57,9 @@
 //! It does not correct for color blindness to make your game more accessible.
 //! This plugin should only be used during development, and removed on final builds.
 
+pub mod plugin;
+pub use plugin::*;
+
 use bevy::{
     asset::load_internal_asset,
     prelude::*,
@@ -125,25 +128,6 @@ use bevy::{
 /// This plugin only simulates how color blind players will see your game.
 /// It does not correct for color blindness to make your game more accessible.
 /// This plugin should only be used during development, and removed on final builds.
-pub struct ColorBlindnessPlugin;
-impl Plugin for ColorBlindnessPlugin {
-    fn build(&self, app: &mut App) {
-        load_internal_asset!(
-            app,
-            COLOR_BLINDNESS_SHADER_HANDLE,
-            "color_blindness.wgsl",
-            Shader::from_wgsl
-        );
-
-        app.add_plugin(Material2dPlugin::<ColorBlindnessMaterial>::default())
-            .add_system(setup_new_color_blindness_cameras)
-            .add_system(update_percentages);
-    }
-}
-
-/// handle to the color blindness simulation shader
-const COLOR_BLINDNESS_SHADER_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 3937837360667146578);
 
 /// The different modes of color blindness simulation supported.
 #[derive(Clone, Default, Debug)]
@@ -193,7 +177,7 @@ pub enum ColorBlindnessMode {
 /// }
 /// # }
 /// ```
-#[derive(ShaderType, Clone, Debug)]
+#[derive(ShaderType, Clone, Default, Copy, Debug)]
 pub struct ColorBlindnessPercentages {
     /// Percentages of red, green, and blue to mix on the red channel.
     pub red: Vec3,
@@ -297,25 +281,6 @@ impl ColorBlindnessMode {
     }
 }
 
-/// Post processing material that applies color blindness simulation to `image`
-#[derive(AsBindGroup, TypeUuid, Clone)]
-#[uuid = "bc2f08eb-a0fb-43f1-a908-54871ea597d5"]
-struct ColorBlindnessMaterial {
-    /// In this example, this image will be the result of the main camera.
-    #[texture(0)]
-    #[sampler(1)]
-    source_image: Handle<Image>,
-
-    #[uniform(2)]
-    percentages: ColorBlindnessPercentages,
-}
-
-impl Material2d for ColorBlindnessMaterial {
-    fn fragment_shader() -> ShaderRef {
-        ShaderRef::Handle(COLOR_BLINDNESS_SHADER_HANDLE.typed())
-    }
-}
-
 /// Component to identify your main camera
 ///
 /// Adding this component to a camera will set up the post-processing pipeline
@@ -338,129 +303,4 @@ pub struct ColorBlindnessCamera {
     ///
     /// Defaults to `false`
     pub enabled: bool,
-}
-
-/// updates the percentages in the post processing material when the values in `ColorBlindnessCamera` change
-fn update_percentages(
-    cameras: Query<
-        (&Handle<ColorBlindnessMaterial>, &ColorBlindnessCamera),
-        Changed<ColorBlindnessCamera>,
-    >,
-    mut materials: ResMut<Assets<ColorBlindnessMaterial>>,
-) {
-    for (handle, camera) in &cameras {
-        let mut mat = materials.get_mut(handle).unwrap();
-
-        let mode = if camera.enabled {
-            &camera.mode
-        } else {
-            &ColorBlindnessMode::Normal
-        };
-
-        mat.percentages = mode.percentages();
-    }
-}
-
-/// sets up post processing for cameras that have had `ColorBlindnessCamera` added
-fn setup_new_color_blindness_cameras(
-    mut commands: Commands,
-    windows: Res<Windows>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut post_processing_materials: ResMut<Assets<ColorBlindnessMaterial>>,
-    mut images: ResMut<Assets<Image>>,
-    mut cameras: Query<(Entity, &mut Camera, &ColorBlindnessCamera), Added<ColorBlindnessCamera>>,
-) {
-    for (entity, mut camera, color_blindness_camera) in &mut cameras {
-        let original_target = camera.target.clone();
-
-        // Get the size the camera is rendering to
-        let size = match &camera.target {
-            RenderTarget::Window(window_id) => {
-                let window = windows.get(*window_id).expect("ColorBlindnessCamera is rendering to a window, but this window could not be found");
-                Extent3d {
-                    width: window.physical_width(),
-                    height: window.physical_height(),
-                    ..Default::default()
-                }
-            }
-            RenderTarget::Image(handle) => {
-                let image = images.get(handle).expect(
-                    "ColorBlindnessCamera is rendering to an Image, but this Image could not be found",
-                );
-                image.texture_descriptor.size
-            }
-        };
-
-        // This is the texture that will be rendered to.
-        let mut image = Image {
-            texture_descriptor: TextureDescriptor {
-                label: None,
-                size,
-                dimension: TextureDimension::D2,
-                format: TextureFormat::bevy_default(),
-                mip_level_count: 1,
-                sample_count: 1,
-                usage: TextureUsages::TEXTURE_BINDING
-                    | TextureUsages::COPY_DST
-                    | TextureUsages::RENDER_ATTACHMENT,
-            },
-            ..Default::default()
-        };
-
-        // fill image.data with zeroes
-        image.resize(size);
-
-        let image_handle = images.add(image);
-
-        // This specifies the layer used for the post processing camera, which will be attached to the post processing camera and 2d quad.
-        let post_processing_pass_layer =
-            RenderLayers::layer((RenderLayers::TOTAL_LAYERS - 1) as u8);
-
-        let quad_handle = meshes.add(Mesh::from(shape::Quad::new(Vec2::new(
-            size.width as f32,
-            size.height as f32,
-        ))));
-
-        // This material has the texture that has been rendered.
-        let material_handle = post_processing_materials.add(ColorBlindnessMaterial {
-            source_image: image_handle.clone(),
-            percentages: color_blindness_camera.mode.percentages(),
-        });
-
-        commands
-            .entity(entity)
-            // add the handle to the camera so we can access it and change the percentages
-            .insert(material_handle.clone())
-            // also disable show_ui so UI elements don't get rendered twice
-            .insert(UiCameraConfig { show_ui: false });
-
-        camera.target = RenderTarget::Image(image_handle);
-
-        // Post processing 2d quad, with material using the render texture done by the main camera, with a custom shader.
-        commands
-            .spawn_bundle(MaterialMesh2dBundle {
-                mesh: quad_handle.into(),
-                material: material_handle,
-                transform: Transform {
-                    translation: Vec3::new(0.0, 0.0, 1.5),
-                    ..Default::default()
-                },
-                ..Default::default()
-            })
-            .insert(post_processing_pass_layer);
-
-        // The post-processing pass camera.
-        commands
-            .spawn_bundle(Camera2dBundle {
-                camera: Camera {
-                    // renders after the first main camera which has default value: 0.
-                    priority: 1,
-                    // set this new camera to render to where the other camera was rendering
-                    target: original_target,
-                    ..Default::default()
-                },
-                ..Camera2dBundle::default()
-            })
-            .insert(post_processing_pass_layer);
-    }
 }
