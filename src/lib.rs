@@ -60,23 +60,7 @@
 pub mod plugin;
 pub use plugin::*;
 
-use bevy::{
-    asset::load_internal_asset,
-    prelude::*,
-    reflect::TypeUuid,
-    render::{
-        camera::{Camera, RenderTarget},
-        mesh::{shape, Mesh},
-        prelude::Image,
-        render_resource::{
-            AsBindGroup, Extent3d, Shader, ShaderRef, ShaderType, TextureDescriptor,
-            TextureDimension, TextureFormat, TextureUsages,
-        },
-        texture::BevyDefault,
-        view::RenderLayers,
-    },
-    sprite::{Material2d, Material2dPlugin, MaterialMesh2dBundle},
-};
+use bevy::{prelude::*, render::render_resource::ShaderType};
 
 /// Plugin to simulate and preview different types of
 /// color blindness.
