@@ -346,7 +346,6 @@ fn update_percentages(
         } else {
             &ColorBlindnessMode::Normal
         };
-        dbg!("test");
         settings.percentages = mode.percentages();
     }
 }
